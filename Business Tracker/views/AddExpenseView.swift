@@ -78,7 +78,7 @@ struct AddExpenseView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Add Expense")
+            .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {

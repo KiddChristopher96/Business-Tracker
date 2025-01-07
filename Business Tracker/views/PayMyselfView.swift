@@ -79,7 +79,7 @@ struct PayMyselfView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Pay Myself")
+            .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {

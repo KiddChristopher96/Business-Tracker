@@ -95,7 +95,7 @@ struct AddPaymentView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Add Payment")
+            .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {

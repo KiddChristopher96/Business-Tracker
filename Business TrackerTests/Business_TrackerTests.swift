@@ -1,9 +1,3 @@
-//
-//  Business_TrackerTests.swift
-//  Business TrackerTests
-//
-//  Created by Christopher Kidd on 1/6/25.
-//
 
 import Testing
 @testable import Business_Tracker

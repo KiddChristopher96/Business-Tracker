@@ -1,9 +1,3 @@
-//
-//  Business_TrackerUITests.swift
-//  Business TrackerUITests
-//
-//  Created by Christopher Kidd on 1/6/25.
-//
 
 import XCTest
 
