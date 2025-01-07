@@ -74,6 +74,11 @@
 			path = "Business TrackerUITests";
 			sourceTree = "<group>";
 		};
+		DE7762312D2CCE8000FE2FD0 /* authentication */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = authentication;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +133,7 @@
 		DE77615C2D2C4BEB00FE2FD0 = {
 			isa = PBXGroup;
 			children = (
+				DE7762312D2CCE8000FE2FD0 /* authentication */,
 				DE7761672D2C4BEB00FE2FD0 /* Business Tracker */,
 				DE7761782D2C4BED00FE2FD0 /* Business TrackerTests */,
 				DE7761822D2C4BED00FE2FD0 /* Business TrackerUITests */,
@@ -163,6 +169,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DE7761672D2C4BEB00FE2FD0 /* Business Tracker */,
+				DE7762312D2CCE8000FE2FD0 /* authentication */,
 			);
 			name = "Business Tracker";
 			packageProductDependencies = (

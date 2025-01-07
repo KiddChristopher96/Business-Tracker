@@ -8,6 +8,17 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Welcome Back Header
+                    VStack {
+                        Text("Welcome Back!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Text("Here's an overview of your business")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 20)
+
                     // Summary Cards
                     HStack(spacing: 15) {
                         SummaryCard(
@@ -102,7 +113,7 @@ struct HomeView: View {
                     }
                 }
                 .padding()
-                .navigationTitle("Business Tracker")
+                .navigationTitle("")
             }
         }
     }

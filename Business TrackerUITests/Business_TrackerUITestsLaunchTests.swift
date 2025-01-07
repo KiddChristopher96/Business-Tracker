@@ -1,10 +1,3 @@
-//
-//  Business_TrackerUITestsLaunchTests.swift
-//  Business TrackerUITests
-//
-//  Created by Christopher Kidd on 1/6/25.
-//
-
 import XCTest
 
 final class Business_TrackerUITestsLaunchTests: XCTestCase {

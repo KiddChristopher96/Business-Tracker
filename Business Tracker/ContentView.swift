@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Business Tracker
-//
-//  Created by Christopher Kidd on 1/6/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
