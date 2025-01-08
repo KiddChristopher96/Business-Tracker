@@ -1,3 +1,4 @@
+// Payment Model
 import Foundation
 import FirebaseFirestore
 
@@ -12,10 +13,10 @@ enum PaymentMethod: String, CaseIterable, Identifiable {
 
 struct Payment: Identifiable {
     var id: String?
-    let amount: Double
-    let method: PaymentMethod
-    let date: Date
-    let notes: String
+    var amount: Double
+    var method: PaymentMethod
+    var date: Date
+    var notes: String
 
     init(id: String?, amount: Double, method: PaymentMethod, date: Date, notes: String) {
         self.id = id

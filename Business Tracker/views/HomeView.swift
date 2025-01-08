@@ -8,74 +8,90 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Welcome Back Header
-                    VStack {
-                        Text("Welcome Back!")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Text("Here's an overview of your business")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    // Welcome Header
+                    VStack(spacing: 20) {
+                        VStack(spacing: 5) {
+                            Text("Welcome Back!")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("Here's an overview of your business")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.bottom, 20)
+                        .padding(.top, -20) // Adjust top padding to reduce space
                     }
-                    .padding(.bottom, 20)
+                    .ignoresSafeArea(edges: .top) // Ignore safe area at the top
+                    .navigationBarHidden(true) // Hide navigation bar
 
                     // Summary Cards
-                    HStack(spacing: 15) {
-                        SummaryCard(
-                            title: "Earnings",
-                            value: appData.payments.reduce(0) { $0 + $1.amount },
-                            icon: "dollarsign.circle",
-                            color: .green
-                        )
-                        SummaryCard(
-                            title: "Expenses",
-                            value: appData.expenses.reduce(0) { $0 + $1.amount },
-                            icon: "cart",
-                            color: .red
-                        )
-                    }
-                    
-                    HStack(spacing: 15) {
-                        SummaryCard(
-                            title: "Paid to Myself",
-                            value: appData.selfPayments.reduce(0) { $0 + $1.amount },
-                            icon: "person.crop.circle",
-                            color: .blue
-                        )
-                        SummaryCard(
-                            title: "Net Profit",
-                            value: appData.payments.reduce(0) { $0 + $1.amount }
-                                - appData.expenses.reduce(0) { $0 + $1.amount }
-                                - appData.selfPayments.reduce(0) { $0 + $1.amount },
-                            icon: "chart.bar",
-                            color: .purple
-                        )
+                    VStack(spacing: 15) {
+                        NavigationLink(destination: DetailedView(title: "Earnings", data: appData.payments.map { $0.toTransaction() })) {
+                            SummaryCard(
+                                title: "Earnings",
+                                value: appData.payments.reduce(0) { $0 + $1.amount },
+                                icon: "dollarsign.circle",
+                                color: .green
+                            )
+                        }
+
+                        NavigationLink(destination: DetailedView(title: "Expenses", data: appData.expenses.map { $0.toTransaction() })) {
+                            SummaryCard(
+                                title: "Expenses",
+                                value: appData.expenses.reduce(0) { $0 + $1.amount },
+                                icon: "cart",
+                                color: .red
+                            )
+                        }
+
+                        NavigationLink(destination: DetailedView(title: "Paid to Myself", data: appData.selfPayments.map { $0.toTransaction() })) {
+                            SummaryCard(
+                                title: "Paid to Myself",
+                                value: appData.selfPayments.reduce(0) { $0 + $1.amount },
+                                icon: "person.crop.circle",
+                                color: .blue
+                            )
+                        }
+
+                        NavigationLink(
+                            destination: DetailedView(
+                                title: "Net Profit",
+                                data: appData.payments.map { $0.toTransaction() } +
+                                      appData.expenses.map { $0.toTransaction() } +
+                                      appData.selfPayments.map { $0.toTransaction() }
+                            )
+                        ) {
+                            SummaryCard(
+                                title: "Net Profit",
+                                value: appData.payments.reduce(0) { $0 + $1.amount }
+                                    - appData.expenses.reduce(0) { $0 + $1.amount }
+                                    - appData.selfPayments.reduce(0) { $0 + $1.amount },
+                                icon: "chart.bar",
+                                color: .purple
+                            )
+                        }
                     }
 
-                    // Quick Links
+                    // Quick Actions
                     Text("Quick Actions")
                         .font(.headline)
                         .padding(.top)
-                    
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            selectedTab = 1 // Navigate to Add Payment tab
-                        }) {
-                            QuickActionButton(title: "Add Payment", icon: "plus.circle", color: .blue)
+
+                    HStack(spacing: 15) {
+                        QuickActionButton(title: "Add Payment", icon: "plus.circle", color: .blue) {
+                            selectedTab = 1
                         }
-                        Button(action: {
-                            selectedTab = 2 // Navigate to Add Expense tab
-                        }) {
-                            QuickActionButton(title: "Add Expense", icon: "minus.circle", color: .red)
+                        QuickActionButton(title: "Add Expense", icon: "minus.circle", color: .red) {
+                            selectedTab = 2
                         }
-                        Button(action: {
-                            selectedTab = 3 // Navigate to Pay Myself tab
-                        }) {
-                            QuickActionButton(title: "Pay Myself", icon: "dollarsign.circle", color: .green)
+                        QuickActionButton(title: "Pay Myself", icon: "dollarsign.circle", color: .green) {
+                            selectedTab = 3
                         }
                     }
+                    .padding(.horizontal)
 
-                    // Recent Activity
+                    // Recent Activity Section
                     Text("Recent Activity")
                         .font(.headline)
                         .padding(.top)
@@ -84,42 +100,183 @@ struct HomeView: View {
                         if appData.payments.isEmpty && appData.expenses.isEmpty && appData.selfPayments.isEmpty {
                             Text("No recent activity recorded.")
                                 .foregroundColor(.gray)
+                                .padding(.horizontal)
                         } else {
-                            ForEach(appData.payments.prefix(3)) { payment in
+                            ForEach(getRecentTransactions().prefix(5)) { transaction in
                                 ActivityCard(
-                                    title: "\(payment.method.rawValue) Payment",
-                                    amount: payment.amount,
-                                    date: payment.date,
+                                    title: transaction.description,
+                                    amount: transaction.amount,
+                                    date: transaction.date,
                                     color: .green
                                 )
                             }
-                            ForEach(appData.expenses.prefix(3)) { expense in
-                                ActivityCard(
-                                    title: "Expense",
-                                    amount: expense.amount,
-                                    date: expense.date,
-                                    color: .red
-                                )
-                            }
-                            ForEach(appData.selfPayments.prefix(3)) { payment in
-                                ActivityCard(
-                                    title: "Paid to Myself",
-                                    amount: payment.amount,
-                                    date: payment.date,
-                                    color: .blue
-                                )
-                            }
+                        }
+                        NavigationLink(destination: RecentActivityView(data: getRecentTransactions())) {
+                            Text("View All")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                                .padding(.top, 10)
                         }
                     }
                 }
                 .padding()
-                .navigationTitle("")
+                .background(Color(.systemGroupedBackground).ignoresSafeArea())
             }
+            .navigationBarHidden(true)
         }
+    }
+
+    private func getRecentTransactions() -> [Transaction] {
+        let payments = appData.payments.map { $0.toTransaction() }
+        let expenses = appData.expenses.map { $0.toTransaction() }
+        let selfPayments = appData.selfPayments.map { $0.toTransaction() }
+        return (payments + expenses + selfPayments).sorted { $0.date > $1.date }
     }
 }
 
-// Summary Card Component
+
+struct RecentActivityView: View {
+    @State private var selectedFilter: FilterType = .all // Quick filter
+    @State private var startDate: Date = Date()
+    @State private var endDate: Date = Date()
+    @State private var filteredData: [Transaction] = []
+    let data: [Transaction]
+
+    var body: some View {
+        VStack {
+            // Quick Filter Picker
+            VStack(spacing: 10) {
+                Picker("Quick Filter", selection: $selectedFilter) {
+                    ForEach(FilterType.allCases, id: \.self) { filter in
+                        Text(filter.rawValue).tag(filter)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                .onChange(of: selectedFilter) { _ in
+                    applyQuickFilter()
+                }
+            }
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .padding()
+
+            // Date Range Picker
+            VStack(spacing: 10) {
+                Text("Or Filter by Date Range")
+                    .font(.headline)
+
+                HStack {
+                    DatePicker("Start Date", selection: $startDate, in: getEarliestDate()...Date(), displayedComponents: .date)
+                        .labelsHidden()
+                    Text("to")
+                    DatePicker("End Date", selection: $endDate, in: getEarliestDate()...Date(), displayedComponents: .date)
+                        .labelsHidden()
+                }
+                .padding(.horizontal)
+
+                Button(action: applyDateRangeFilter) {
+                    Text("Apply Date Range Filter")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .shadow(radius: 5)
+            .padding()
+
+            // Filtered List
+            if filteredData.isEmpty {
+                Text("No transactions found for the selected filter.")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                List(filteredData) { transaction in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(transaction.description)
+                                .font(.headline)
+                            Text("\(transaction.date, style: .date)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text("$\(String(format: "%.2f", transaction.amount))")
+                            .font(.headline)
+                            .foregroundColor(transaction.amount < 0 ? .red : .green)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            initializeDateRange()
+            applyQuickFilter()
+        }
+        .navigationTitle("Recent Activity")
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+    }
+
+    // Quick Filter Logic
+    private func applyQuickFilter() {
+        switch selectedFilter {
+        case .all:
+            filteredData = data
+        case .today:
+            filteredData = data.filter { Calendar.current.isDateInToday($0.date) }
+        case .week:
+            filteredData = data.filter {
+                Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear)
+            }
+        case .month:
+            filteredData = data.filter {
+                Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
+            }
+        case .year:
+            filteredData = data.filter {
+                Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year)
+            }
+        }
+    }
+
+    // Date Range Filter Logic
+    private func applyDateRangeFilter() {
+        filteredData = data.filter { transaction in
+            transaction.date >= startDate && transaction.date <= endDate
+        }
+    }
+
+    // Initialize Start and End Date Based on Data
+    private func initializeDateRange() {
+        startDate = getEarliestDate()
+        endDate = Date()
+    }
+
+    // Get Earliest Transaction Date
+    private func getEarliestDate() -> Date {
+        return data.map { $0.date }.min() ?? Date()
+    }
+}
+
+// Filter Type Enum
+enum FilterType: String, CaseIterable {
+    case all = "All"
+    case today = "Today"
+    case week = "This Week"
+    case month = "This Month"
+    case year = "This Year"
+}
+
+
+
+
+// Components
+
 struct SummaryCard: View {
     let title: String
     let value: Double
@@ -127,56 +284,52 @@ struct SummaryCard: View {
     let color: Color
 
     var body: some View {
-        VStack {
-            HStack {
-                Image(systemName: icon)
-                    .font(.largeTitle)
-                    .foregroundColor(color)
-                Spacer()
+        HStack {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 Text("$\(String(format: "%.2f", value))")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(color)
-                    .lineLimit(1) // Prevents overflow
-                    .minimumScaleFactor(0.5) // Scales down if the text is too long
             }
-            .padding()
-            
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.secondary)
+            Spacer()
+            Image(systemName: icon)
+                .font(.largeTitle)
+                .foregroundColor(color)
         }
-        .frame(maxWidth: .infinity, minHeight: 100) // Increased height for better spacing
+        .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .shadow(radius: 5)
     }
 }
 
-// Quick Action Button Component
 struct QuickActionButton: View {
     let title: String
     let icon: String
     let color: Color
+    let action: () -> Void
 
     var body: some View {
-        VStack {
-            Image(systemName: icon)
-                .font(.largeTitle)
-                .foregroundColor(color)
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.primary)
+        Button(action: action) {
+            VStack {
+                Image(systemName: icon)
+                    .font(.largeTitle)
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .shadow(radius: 5)
         }
-        .padding()
-        .frame(width: 100, height: 100)
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .shadow(radius: 5)
     }
 }
 
-// Activity Card Component
 struct ActivityCard: View {
     let title: String
     let amount: Double
@@ -203,8 +356,70 @@ struct ActivityCard: View {
     }
 }
 
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView(selectedTab: .constant(0)).environmentObject(AppData())
+// Transaction Model
+
+struct Transaction: Identifiable {
+    let id = UUID()
+    let description: String
+    let date: Date
+    let amount: Double
+}
+
+// Extensions to Convert to Transaction
+
+extension Payment {
+    func toTransaction() -> Transaction {
+        return Transaction(description: method.rawValue, date: date, amount: amount)
+    }
+}
+
+extension Expense {
+    func toTransaction() -> Transaction {
+        return Transaction(description: "Expense", date: date, amount: amount) // Adjust as needed
+    }
+}
+
+extension SelfPayment {
+    func toTransaction() -> Transaction {
+        return Transaction(description: "Paid to Myself", date: date, amount: amount)
+    }
+}
+
+// Detailed View for Each Card
+
+struct DetailedView: View {
+    let title: String
+    let data: [Transaction]
+
+    var body: some View {
+        VStack {
+            Text(title)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding()
+
+            if data.isEmpty {
+                Text("No \(title.lowercased()) data available.")
+                    .foregroundColor(.gray)
+            } else {
+                List(data) { transaction in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(transaction.description)
+                                .font(.headline)
+                            Text("\(transaction.date, style: .date)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text("$\(String(format: "%.2f", transaction.amount))")
+                            .font(.headline)
+                            .foregroundColor(title == "Expenses" ? .red : .green)
+                    }
+                }
+            }
+        }
+        .navigationTitle(title)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 }
