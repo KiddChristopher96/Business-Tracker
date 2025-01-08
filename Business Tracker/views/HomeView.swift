@@ -6,72 +6,54 @@ struct HomeView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Welcome Header
-                    VStack(spacing: 20) {
-                        VStack(spacing: 5) {
-                            Text("Welcome Back!")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.center)
-                            Text("Here's an overview of your business")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.bottom, 20)
-                        .padding(.top, -20) // Adjust top padding to reduce space
-                    }
-                    .ignoresSafeArea(edges: .top) // Ignore safe area at the top
-                    .navigationBarHidden(true) // Hide navigation bar
+                   ScrollView {
+                       VStack(spacing: 20) {
+                           // Welcome Header
+                           VStack(spacing: 20) {
+                               VStack(spacing: 5) {
+                                   Text("Welcome Back!")
+                                       .font(.largeTitle)
+                                       .fontWeight(.bold)
+                                       .multilineTextAlignment(.center)
+                                   Text("Here's an overview of your business")
+                                       .font(.subheadline)
+                                       .foregroundColor(.secondary)
+                               }
+                               .padding(.bottom, 20)
+                               .padding(.top, -20) // Adjust top padding to reduce space
+                           }
+                           .ignoresSafeArea(edges: .top) // Ignore safe area at the top
+                           .navigationBarHidden(true) // Hide navigation bar
 
-                    // Summary Cards
-                    VStack(spacing: 15) {
-                        NavigationLink(destination: DetailedView(title: "Earnings", data: appData.payments.map { $0.toTransaction() })) {
-                            SummaryCard(
-                                title: "Earnings",
-                                value: appData.payments.reduce(0) { $0 + $1.amount },
-                                icon: "dollarsign.circle",
-                                color: .green
-                            )
-                        }
+                           // Summary Cards
+                           VStack(spacing: 15) {
+                               NavigationLink(destination: PaymentListView(payments: appData.payments)) {
+                                   SummaryCard(
+                                       title: "Earnings",
+                                       value: appData.payments.reduce(0) { $0 + $1.amount },
+                                       icon: "dollarsign.circle",
+                                       color: .green
+                                   )
+                               }
 
-                        NavigationLink(destination: DetailedView(title: "Expenses", data: appData.expenses.map { $0.toTransaction() })) {
-                            SummaryCard(
-                                title: "Expenses",
-                                value: appData.expenses.reduce(0) { $0 + $1.amount },
-                                icon: "cart",
-                                color: .red
-                            )
-                        }
+                               NavigationLink(destination: ExpenseListView(expenses: appData.expenses)) {
+                                   SummaryCard(
+                                       title: "Expenses",
+                                       value: appData.expenses.reduce(0) { $0 + $1.amount },
+                                       icon: "cart",
+                                       color: .red
+                                   )
+                               }
 
-                        NavigationLink(destination: DetailedView(title: "Paid to Myself", data: appData.selfPayments.map { $0.toTransaction() })) {
-                            SummaryCard(
-                                title: "Paid to Myself",
-                                value: appData.selfPayments.reduce(0) { $0 + $1.amount },
-                                icon: "person.crop.circle",
-                                color: .blue
-                            )
-                        }
-
-                        NavigationLink(
-                            destination: DetailedView(
-                                title: "Net Profit",
-                                data: appData.payments.map { $0.toTransaction() } +
-                                      appData.expenses.map { $0.toTransaction() } +
-                                      appData.selfPayments.map { $0.toTransaction() }
-                            )
-                        ) {
-                            SummaryCard(
-                                title: "Net Profit",
-                                value: appData.payments.reduce(0) { $0 + $1.amount }
-                                    - appData.expenses.reduce(0) { $0 + $1.amount }
-                                    - appData.selfPayments.reduce(0) { $0 + $1.amount },
-                                icon: "chart.bar",
-                                color: .purple
-                            )
-                        }
-                    }
+                               NavigationLink(destination: SelfPaymentListView(selfPayments: appData.selfPayments)) {
+                                   SummaryCard(
+                                       title: "Paid to Myself",
+                                       value: appData.selfPayments.reduce(0) { $0 + $1.amount },
+                                       icon: "person.crop.circle",
+                                       color: .blue
+                                   )
+                               }
+                           }
 
                     // Quick Actions
                     Text("Quick Actions")

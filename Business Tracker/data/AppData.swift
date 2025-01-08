@@ -120,4 +120,40 @@ class AppData: ObservableObject {
             print("Self payments updated: \(self.selfPayments.count) records")
         }
     }
+    
+    func deletePayment(_ payment: Payment) {
+            guard let userID = Auth.auth().currentUser?.uid, let paymentID = payment.id else { return }
+
+            db.collection("users").document(userID).collection("payments").document(paymentID).delete { error in
+                if let error = error {
+                    print("Error deleting payment: \(error)")
+                } else {
+                    self.payments.removeAll { $0.id == payment.id }
+                }
+            }
+        }
+
+        func deleteExpense(_ expense: Expense) {
+            guard let userID = Auth.auth().currentUser?.uid, let expenseID = expense.id else { return }
+
+            db.collection("users").document(userID).collection("expenses").document(expenseID).delete { error in
+                if let error = error {
+                    print("Error deleting expense: \(error)")
+                } else {
+                    self.expenses.removeAll { $0.id == expense.id }
+                }
+            }
+        }
+
+        func deleteSelfPayment(_ selfPayment: SelfPayment) {
+            guard let userID = Auth.auth().currentUser?.uid, let selfPaymentID = selfPayment.id else { return }
+
+            db.collection("users").document(userID).collection("selfPayments").document(selfPaymentID).delete { error in
+                if let error = error {
+                    print("Error deleting self-payment: \(error)")
+                } else {
+                    self.selfPayments.removeAll { $0.id == selfPayment.id }
+                }
+            }
+        }
 }
