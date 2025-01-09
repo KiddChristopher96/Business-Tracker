@@ -5,28 +5,43 @@ struct PaymentListView: View {
 
     var body: some View {
         VStack {
-            Text("Earnings")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
-
             if payments.isEmpty {
-                Text("No earnings data available.")
-                    .foregroundColor(.gray)
+                // Empty State
+                VStack(spacing: 16) {
+                    Image(systemName: "tray")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 80, height: 80)
+                        .foregroundColor(.gray.opacity(0.5))
+                    
+                    Text("No Earnings Yet")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text("You haven't recorded any earnings yet. Add your first payment to get started!")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemGroupedBackground).ignoresSafeArea())
             } else {
+                // List of Payments
                 List(payments) { payment in
                     NavigationLink(destination: PaymentDetailView(payment: payment)) {
                         ActivityCard(
-                            title: payment.method.rawValue,
+                            title: payment.method, // Updated to dynamic method (String)
                             amount: payment.amount,
                             date: payment.date,
-                            color: .green
+                            color: .green // Keep consistent color for earnings
                         )
                     }
                 }
+                .listStyle(InsetGroupedListStyle())
             }
         }
         .navigationTitle("Earnings")
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 }

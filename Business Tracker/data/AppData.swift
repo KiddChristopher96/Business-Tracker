@@ -53,32 +53,29 @@ class AppData: ObservableObject {
     }
 
     // MARK: - Payments
-    func addPayment(amount: Double, method: PaymentMethod, date: Date, notes: String) {
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        let payment = Payment(id: nil, amount: amount, method: method, date: date, notes: notes)
-        db.collection("users").document(userID).collection("payments").addDocument(data: payment.toDictionary()) { error in
-            if let error = error {
-                print("Error adding payment: \(error)")
-            }
+    func addPayment(amount: Double, method: String, date: Date, notes: String) {
+            guard let userID = Auth.auth().currentUser?.uid else { return }
+            let payment = Payment(id: nil, amount: amount, method: method, date: date, notes: notes)
+            db.collection("users").document(userID).collection("payments").addDocument(data: payment.toDictionary())
         }
-    }
 
-    func fetchPayments() {
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        db.collection("users").document(userID).collection("payments").addSnapshotListener { querySnapshot, error in
-            if let error = error {
-                print("Error fetching payments: \(error)")
-                return
+        func fetchPayments() {
+            guard let userID = Auth.auth().currentUser?.uid else { return }
+            db.collection("users").document(userID).collection("payments").addSnapshotListener { querySnapshot, error in
+                if let error = error { return }
+                self.payments = querySnapshot?.documents.compactMap { Payment(from: $0) } ?? []
             }
-            self.payments = querySnapshot?.documents.compactMap { Payment(from: $0) } ?? []
-            print("Payments updated: \(self.payments.count) records")
         }
-    }
+
+        func deletePayment(_ payment: Payment) {
+            guard let userID = Auth.auth().currentUser?.uid, let paymentID = payment.id else { return }
+            db.collection("users").document(userID).collection("payments").document(paymentID).delete()
+        }
 
     // MARK: - Expenses
-    func addExpense(amount: Double, date: Date, notes: String) {
+    func addExpense(amount: Double, date: Date, notes: String, category: String) {
         guard let userID = Auth.auth().currentUser?.uid else { return }
-        let expense = Expense(id: nil, amount: amount, date: date, notes: notes)
+        let expense = Expense(id: nil, amount: amount, date: date, notes: notes, category: category)
         db.collection("users").document(userID).collection("expenses").addDocument(data: expense.toDictionary()) { error in
             if let error = error {
                 print("Error adding expense: \(error)")
@@ -121,18 +118,6 @@ class AppData: ObservableObject {
         }
     }
     
-    func deletePayment(_ payment: Payment) {
-            guard let userID = Auth.auth().currentUser?.uid, let paymentID = payment.id else { return }
-
-            db.collection("users").document(userID).collection("payments").document(paymentID).delete { error in
-                if let error = error {
-                    print("Error deleting payment: \(error)")
-                } else {
-                    self.payments.removeAll { $0.id == payment.id }
-                }
-            }
-        }
-
         func deleteExpense(_ expense: Expense) {
             guard let userID = Auth.auth().currentUser?.uid, let expenseID = expense.id else { return }
 

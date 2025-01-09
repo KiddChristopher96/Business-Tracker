@@ -10,7 +10,7 @@ struct DetailedBreakdownView: View {
                 Section(header: Text("Payments")) {
                     ForEach(appData.payments) { payment in
                         DetailedBreakdownRow(
-                            title: "\(payment.method.rawValue) Payment",
+                            title: "\(payment.method) Payment", // Use method directly as it's now a String
                             amount: payment.amount,
                             date: payment.date,
                             notes: payment.notes,
@@ -53,3 +53,4 @@ struct DetailedBreakdownView: View {
         .navigationTitle("Detailed Breakdown")
     }
 }
+

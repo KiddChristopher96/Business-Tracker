@@ -27,7 +27,7 @@ struct EarningsAnalyticsView: View {
                                 x: .value("Payment Method", $0.method),
                                 y: .value("Amount", $0.amount)
                             )
-                            .foregroundStyle(by: .value("Payment Method", $0.method)) // Adds unique colors
+                            .foregroundStyle(by: .value("Payment Method", $0.method)) // Unique colors for each method
                         }
                         .frame(height: 300)
                         .padding()
@@ -48,8 +48,8 @@ struct EarningsAnalyticsView: View {
                                 x: .value("Date", $0.date),
                                 y: .value("Amount", $0.amount)
                             )
-                            .interpolationMethod(.catmullRom) // Smooths the line
-                            .foregroundStyle(.blue) // Set consistent color
+                            .interpolationMethod(.catmullRom) // Smooth lines
+                            .foregroundStyle(.blue) // Consistent color
                         }
                         .frame(height: 300)
                         .padding()
@@ -65,7 +65,7 @@ struct EarningsAnalyticsView: View {
 
     // Computed property for Earnings by Payment Method
     private var earningsByMethodData: [EarningsByMethod] {
-        var methodTotals: [PaymentMethod: Double] = [:]
+        var methodTotals: [String: Double] = [:]
 
         // Aggregate earnings by payment method
         for payment in appData.payments {
@@ -73,7 +73,7 @@ struct EarningsAnalyticsView: View {
         }
 
         // Convert to an array of `EarningsByMethod`
-        return methodTotals.map { EarningsByMethod(method: $0.key.rawValue, amount: $0.value) }
+        return methodTotals.map { EarningsByMethod(method: $0.key, amount: $0.value) }
     }
 
     // Computed property for Earnings Over Time

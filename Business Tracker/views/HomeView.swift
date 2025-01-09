@@ -6,102 +6,105 @@ struct HomeView: View {
 
     var body: some View {
         NavigationView {
-                   ScrollView {
-                       VStack(spacing: 20) {
-                           // Welcome Header
-                           VStack(spacing: 20) {
-                               VStack(spacing: 5) {
-                                   Text("Welcome Back!")
-                                       .font(.largeTitle)
-                                       .fontWeight(.bold)
-                                       .multilineTextAlignment(.center)
-                                   Text("Here's an overview of your business")
-                                       .font(.subheadline)
-                                       .foregroundColor(.secondary)
-                               }
-                               .padding(.bottom, 20)
-                               .padding(.top, -20) // Adjust top padding to reduce space
-                           }
-                           .ignoresSafeArea(edges: .top) // Ignore safe area at the top
-                           .navigationBarHidden(true) // Hide navigation bar
+            ScrollView {
+                VStack(spacing: 30) {
+                    // Welcome Header
+                    VStack(spacing: 12) {
+                        Text("Welcome Back!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.center)
+                        Text("Here's an overview of your business")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 40)
 
-                           // Summary Cards
-                           VStack(spacing: 15) {
-                               NavigationLink(destination: PaymentListView(payments: appData.payments)) {
-                                   SummaryCard(
-                                       title: "Earnings",
-                                       value: appData.payments.reduce(0) { $0 + $1.amount },
-                                       icon: "dollarsign.circle",
-                                       color: .green
-                                   )
-                               }
+                    // Summary Cards
+                    VStack(spacing: 20) {
+                        NavigationLink(destination: PaymentListView(payments: appData.payments)) {
+                            SummaryCard(
+                                title: "Earnings",
+                                value: appData.payments.reduce(0) { $0 + $1.amount },
+                                icon: "dollarsign.circle",
+                                color: .green
+                            )
+                        }
 
-                               NavigationLink(destination: ExpenseListView(expenses: appData.expenses)) {
-                                   SummaryCard(
-                                       title: "Expenses",
-                                       value: appData.expenses.reduce(0) { $0 + $1.amount },
-                                       icon: "cart",
-                                       color: .red
-                                   )
-                               }
+                        NavigationLink(destination: ExpenseListView(expenses: appData.expenses)) {
+                            SummaryCard(
+                                title: "Expenses",
+                                value: appData.expenses.reduce(0) { $0 + $1.amount },
+                                icon: "cart",
+                                color: .red
+                            )
+                        }
 
-                               NavigationLink(destination: SelfPaymentListView(selfPayments: appData.selfPayments)) {
-                                   SummaryCard(
-                                       title: "Paid to Myself",
-                                       value: appData.selfPayments.reduce(0) { $0 + $1.amount },
-                                       icon: "person.crop.circle",
-                                       color: .blue
-                                   )
-                               }
-                           }
+                        NavigationLink(destination: SelfPaymentListView(selfPayments: appData.selfPayments)) {
+                            SummaryCard(
+                                title: "Paid to Myself",
+                                value: appData.selfPayments.reduce(0) { $0 + $1.amount },
+                                icon: "person.crop.circle",
+                                color: .blue
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
 
                     // Quick Actions
-                    Text("Quick Actions")
-                        .font(.headline)
-                        .padding(.top)
+                    VStack(spacing: 20) {
+                        Text("Quick Actions")
+                            .font(.headline)
+                            .padding(.horizontal)
 
-                    HStack(spacing: 15) {
-                        QuickActionButton(title: "Add Payment", icon: "plus.circle", color: .blue) {
-                            selectedTab = 1
-                        }
-                        QuickActionButton(title: "Add Expense", icon: "minus.circle", color: .red) {
-                            selectedTab = 2
-                        }
-                        QuickActionButton(title: "Pay Myself", icon: "dollarsign.circle", color: .green) {
-                            selectedTab = 3
+                        HStack(spacing: 20) {
+                            QuickActionButton(title: "Add Payment", icon: "plus.circle", color: .green) {
+                                selectedTab = 1
+                            }
+                            QuickActionButton(title: "Add Expense", icon: "minus.circle", color: .red) {
+                                selectedTab = 2
+                            }
+                            QuickActionButton(title: "Pay Myself", icon: "dollarsign.circle", color: .blue) {
+                                selectedTab = 3
+                            }
                         }
                     }
                     .padding(.horizontal)
 
                     // Recent Activity Section
-                    Text("Recent Activity")
-                        .font(.headline)
-                        .padding(.top)
+                    VStack(spacing: 16) {
+                        Text("Recent Activity")
+                            .font(.headline)
+                            .padding(.horizontal)
 
-                    VStack(spacing: 10) {
                         if appData.payments.isEmpty && appData.expenses.isEmpty && appData.selfPayments.isEmpty {
                             Text("No recent activity recorded.")
                                 .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         } else {
-                            ForEach(getRecentTransactions().prefix(5)) { transaction in
-                                ActivityCard(
-                                    title: transaction.description,
-                                    amount: transaction.amount,
-                                    date: transaction.date,
-                                    color: .green
-                                )
+                            VStack(spacing: 12) {
+                                ForEach(getRecentTransactions().prefix(5)) { transaction in
+                                    ActivityCard(
+                                        title: transaction.description,
+                                        amount: transaction.amount,
+                                        date: transaction.date,
+                                        color: getTransactionColor(transaction: transaction)
+                                    )
+                                }
+                                NavigationLink(destination: RecentActivityView(data: getRecentTransactions())) {
+                                    Text("View All")
+                                        .font(.headline)
+                                        .foregroundColor(.blue)
+                                        .padding(.top, 10)
+                                }
                             }
                         }
-                        NavigationLink(destination: RecentActivityView(data: getRecentTransactions())) {
-                            Text("View All")
-                                .font(.headline)
-                                .foregroundColor(.blue)
-                                .padding(.top, 10)
-                        }
                     }
+                    .padding(.horizontal)
                 }
-                .padding()
+                .padding(.bottom, 40)
                 .background(Color(.systemGroupedBackground).ignoresSafeArea())
             }
             .navigationBarHidden(true)
@@ -114,9 +117,101 @@ struct HomeView: View {
         let selfPayments = appData.selfPayments.map { $0.toTransaction() }
         return (payments + expenses + selfPayments).sorted { $0.date > $1.date }
     }
+
+    private func getTransactionColor(transaction: Transaction) -> Color {
+        if transaction.description == "Paid to Myself" {
+            return .blue
+        } else if transaction.description == "Expense" {
+            return .red
+        } else {
+            return .green
+        }
+    }
 }
 
+// Summary Card
+struct SummaryCard: View {
+    let title: String
+    let value: Double
+    let icon: String
+    let color: Color
 
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text("$\(String(format: "%.2f", value))")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(color)
+            }
+            Spacer()
+            Image(systemName: icon)
+                .font(.largeTitle)
+                .foregroundColor(color)
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
+    }
+}
+
+// Quick Action Button
+struct QuickActionButton: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.title)
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+            }
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
+        }
+    }
+}
+
+// Activity Card
+struct ActivityCard: View {
+    let title: String
+    let amount: Double
+    let date: Date
+    let color: Color
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(color)
+                Text("Amount: $\(String(format: "%.2f", amount))")
+                Text("Date: \(date, style: .date)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(8)
+        .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
+    }
+}
+
+// Recent Activity View
 struct RecentActivityView: View {
     @State private var selectedFilter: FilterType = .all // Quick filter
     @State private var startDate: Date = Date()
@@ -125,7 +220,7 @@ struct RecentActivityView: View {
     let data: [Transaction]
 
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
             // Quick Filter Picker
             VStack(spacing: 10) {
                 Picker("Quick Filter", selection: $selectedFilter) {
@@ -143,36 +238,6 @@ struct RecentActivityView: View {
             .cornerRadius(12)
             .padding()
 
-            // Date Range Picker
-            VStack(spacing: 10) {
-                Text("Or Filter by Date Range")
-                    .font(.headline)
-
-                HStack {
-                    DatePicker("Start Date", selection: $startDate, in: getEarliestDate()...Date(), displayedComponents: .date)
-                        .labelsHidden()
-                    Text("to")
-                    DatePicker("End Date", selection: $endDate, in: getEarliestDate()...Date(), displayedComponents: .date)
-                        .labelsHidden()
-                }
-                .padding(.horizontal)
-
-                Button(action: applyDateRangeFilter) {
-                    Text("Apply Date Range Filter")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .shadow(radius: 5)
-            .padding()
-
             // Filtered List
             if filteredData.isEmpty {
                 Text("No transactions found for the selected filter.")
@@ -181,7 +246,7 @@ struct RecentActivityView: View {
             } else {
                 List(filteredData) { transaction in
                     HStack {
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(transaction.description)
                                 .font(.headline)
                             Text("\(transaction.date, style: .date)")
@@ -204,7 +269,6 @@ struct RecentActivityView: View {
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 
-    // Quick Filter Logic
     private func applyQuickFilter() {
         switch selectedFilter {
         case .all:
@@ -226,20 +290,11 @@ struct RecentActivityView: View {
         }
     }
 
-    // Date Range Filter Logic
-    private func applyDateRangeFilter() {
-        filteredData = data.filter { transaction in
-            transaction.date >= startDate && transaction.date <= endDate
-        }
-    }
-
-    // Initialize Start and End Date Based on Data
     private func initializeDateRange() {
         startDate = getEarliestDate()
         endDate = Date()
     }
 
-    // Get Earliest Transaction Date
     private func getEarliestDate() -> Date {
         return data.map { $0.date }.min() ?? Date()
     }
@@ -254,92 +309,7 @@ enum FilterType: String, CaseIterable {
     case year = "This Year"
 }
 
-
-
-
-// Components
-
-struct SummaryCard: View {
-    let title: String
-    let value: Double
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Text("$\(String(format: "%.2f", value))")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(color)
-            }
-            Spacer()
-            Image(systemName: icon)
-                .font(.largeTitle)
-                .foregroundColor(color)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .shadow(radius: 5)
-    }
-}
-
-struct QuickActionButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack {
-                Image(systemName: icon)
-                    .font(.largeTitle)
-                    .foregroundColor(color)
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.primary)
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .shadow(radius: 5)
-        }
-    }
-}
-
-struct ActivityCard: View {
-    let title: String
-    let amount: Double
-    let date: Date
-    let color: Color
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(color)
-                Text("Amount: $\(String(format: "%.2f", amount))")
-                Text("Date: \(date, style: .date)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(8)
-        .shadow(radius: 2)
-    }
-}
-
 // Transaction Model
-
 struct Transaction: Identifiable {
     let id = UUID()
     let description: String
@@ -348,16 +318,15 @@ struct Transaction: Identifiable {
 }
 
 // Extensions to Convert to Transaction
-
 extension Payment {
     func toTransaction() -> Transaction {
-        return Transaction(description: method.rawValue, date: date, amount: amount)
+        return Transaction(description: method, date: date, amount: amount)
     }
 }
 
 extension Expense {
     func toTransaction() -> Transaction {
-        return Transaction(description: "Expense", date: date, amount: amount) // Adjust as needed
+        return Transaction(description: "Expense", date: date, amount: amount)
     }
 }
 
@@ -366,6 +335,7 @@ extension SelfPayment {
         return Transaction(description: "Paid to Myself", date: date, amount: amount)
     }
 }
+
 
 // Detailed View for Each Card
 
