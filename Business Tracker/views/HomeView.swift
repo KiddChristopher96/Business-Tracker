@@ -5,7 +5,11 @@ struct HomeView: View {
     @Binding var selectedTab: Int // Binding to control the selected tab
 
     var body: some View {
-        NavigationView {
+        ZStack {
+            // Background that spans the entire view
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+
             ScrollView {
                 VStack(spacing: 30) {
                     // Welcome Header
@@ -14,31 +18,33 @@ struct HomeView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
-                        Text("Here's an overview of your business")
+                        Text("Here's an overview of your business.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
-                    .padding(.top, 40)
+                    .padding(.top, 20) // Reduced padding to remove white space
 
-                    // Summary Cards
+                    // Summary Section
                     VStack(spacing: 20) {
-                        NavigationLink(destination: PaymentListView(payments: appData.payments)) {
-                            SummaryCard(
-                                title: "Earnings",
-                                value: appData.payments.reduce(0) { $0 + $1.amount },
-                                icon: "dollarsign.circle",
-                                color: .green
-                            )
-                        }
+                        HStack(spacing: 20) {
+                            NavigationLink(destination: PaymentListView(payments: appData.payments)) {
+                                SummaryCard(
+                                    title: "Earnings",
+                                    value: appData.totalEarnings,
+                                    icon: "dollarsign.circle",
+                                    color: .green
+                                )
+                            }
 
-                        NavigationLink(destination: ExpenseListView(expenses: appData.expenses)) {
-                            SummaryCard(
-                                title: "Expenses",
-                                value: appData.expenses.reduce(0) { $0 + $1.amount },
-                                icon: "cart",
-                                color: .red
-                            )
+                            NavigationLink(destination: ExpenseListView(expenses: appData.expenses)) {
+                                SummaryCard(
+                                    title: "Expenses",
+                                    value: appData.totalExpenses,
+                                    icon: "cart",
+                                    color: .red
+                                )
+                            }
                         }
 
                         NavigationLink(destination: SelfPaymentListView(selfPayments: appData.selfPayments)) {
@@ -49,6 +55,14 @@ struct HomeView: View {
                                 color: .blue
                             )
                         }
+
+                        // Net Profit Card
+                        SummaryCard(
+                            title: "Net Profit",
+                            value: appData.totalEarnings - appData.totalExpenses - appData.selfPayments.reduce(0) { $0 + $1.amount },
+                            icon: "arrow.up.right.circle",
+                            color: .purple
+                        )
                     }
                     .padding(.horizontal)
 
@@ -105,10 +119,9 @@ struct HomeView: View {
                     .padding(.horizontal)
                 }
                 .padding(.bottom, 40)
-                .background(Color(.systemGroupedBackground).ignoresSafeArea())
             }
-            .navigationBarHidden(true)
         }
+        .navigationBarHidden(true) // Hides navigation bar to prevent extra spacing
     }
 
     private func getRecentTransactions() -> [Transaction] {
@@ -119,17 +132,18 @@ struct HomeView: View {
     }
 
     private func getTransactionColor(transaction: Transaction) -> Color {
-        if transaction.description == "Paid to Myself" {
+        switch transaction.description {
+        case "Paid to Myself":
             return .blue
-        } else if transaction.description == "Expense" {
+        case "Expense":
             return .red
-        } else {
+        default:
             return .green
         }
     }
 }
 
-// Summary Card
+// MARK: - Summary Card
 struct SummaryCard: View {
     let title: String
     let value: Double
@@ -159,7 +173,7 @@ struct SummaryCard: View {
     }
 }
 
-// Quick Action Button
+// MARK: - Quick Action Button
 struct QuickActionButton: View {
     let title: String
     let icon: String
@@ -184,7 +198,7 @@ struct QuickActionButton: View {
     }
 }
 
-// Activity Card
+// MARK: - Activity Card
 struct ActivityCard: View {
     let title: String
     let amount: Double
@@ -211,18 +225,59 @@ struct ActivityCard: View {
     }
 }
 
-// Recent Activity View
+// MARK: - Filter Type Enum
+enum FilterType: String, CaseIterable {
+    case all = "All"
+    case today = "Today"
+    case week = "This Week"
+    case month = "This Month"
+    case year = "This Year"
+}
+
+// MARK: - Transaction Model
+struct Transaction: Identifiable, Codable {
+    let id = UUID()
+    let description: String
+    let date: Date
+    let amount: Double
+}
+
+// MARK: - Extensions to Convert to Transaction
+extension Payment {
+    func toTransaction() -> Transaction {
+        return Transaction(description: method, date: date, amount: amount)
+    }
+}
+
+extension Expense {
+    func toTransaction() -> Transaction {
+        return Transaction(description: "Expense", date: date, amount: amount)
+    }
+}
+
+extension SelfPayment {
+    func toTransaction() -> Transaction {
+        return Transaction(description: "Paid to Myself", date: date, amount: amount)
+    }
+}
+
+// MARK: - Recent Activity View
 struct RecentActivityView: View {
-    @State private var selectedFilter: FilterType = .all // Quick filter
+    @State private var selectedFilter: FilterType = .all
     @State private var startDate: Date = Date()
     @State private var endDate: Date = Date()
     @State private var filteredData: [Transaction] = []
+    @State private var showDocumentPicker = false
+    @State private var pendingFileURL: URL?
     let data: [Transaction]
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Quick Filter Picker
-            VStack(spacing: 10) {
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                // Quick Filter Picker
                 Picker("Quick Filter", selection: $selectedFilter) {
                     ForEach(FilterType.allCases, id: \.self) { filter in
                         Text(filter.rawValue).tag(filter)
@@ -230,43 +285,60 @@ struct RecentActivityView: View {
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
-                .onChange(of: selectedFilter) { _ in
-                    applyQuickFilter()
-                }
-            }
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .padding()
+                .onChange(of: selectedFilter) { _ in applyQuickFilter() }
 
-            // Filtered List
-            if filteredData.isEmpty {
-                Text("No transactions found for the selected filter.")
-                    .foregroundColor(.gray)
-                    .padding()
-            } else {
-                List(filteredData) { transaction in
+                // Date Range Picker
+                VStack(spacing: 10) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                            .labelsHidden()
+                        Text("-")
+                        DatePicker("End Date", selection: $endDate, displayedComponents: .date)
+                            .labelsHidden()
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+                }
+                .onChange(of: startDate) { _ in applyDateRangeFilter() }
+                .onChange(of: endDate) { _ in applyDateRangeFilter() }
+
+                // Export Button
+                Button(action: exportFilteredData) {
+                    Text("Export Filtered Data")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+
+                if filteredData.isEmpty {
+                    Spacer()
+                    Text("No transactions found.")
+                        .foregroundColor(.gray)
+                    Spacer()
+                } else {
+                    List(filteredData) { transaction in
+                        HStack {
                             Text(transaction.description)
                                 .font(.headline)
-                            Text("\(transaction.date, style: .date)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("$\(String(format: "%.2f", transaction.amount))")
+                                .foregroundColor(getTransactionColor(transaction))
                         }
-                        Spacer()
-                        Text("$\(String(format: "%.2f", transaction.amount))")
-                            .font(.headline)
-                            .foregroundColor(transaction.amount < 0 ? .red : .green)
                     }
                 }
             }
+            .onAppear {
+                applyQuickFilter()
+            }
         }
-        .onAppear {
-            initializeDateRange()
-            applyQuickFilter()
+        .sheet(isPresented: $showDocumentPicker) {
+            DocumentPickerHomeView(fileURL: pendingFileURL)
         }
-        .navigationTitle("Recent Activity")
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
 
     private func applyQuickFilter() {
@@ -290,88 +362,51 @@ struct RecentActivityView: View {
         }
     }
 
-    private func initializeDateRange() {
-        startDate = getEarliestDate()
-        endDate = Date()
+    private func applyDateRangeFilter() {
+        filteredData = data.filter { $0.date >= startDate && $0.date <= endDate }
     }
 
-    private func getEarliestDate() -> Date {
-        return data.map { $0.date }.min() ?? Date()
-    }
-}
-
-// Filter Type Enum
-enum FilterType: String, CaseIterable {
-    case all = "All"
-    case today = "Today"
-    case week = "This Week"
-    case month = "This Month"
-    case year = "This Year"
-}
-
-// Transaction Model
-struct Transaction: Identifiable {
-    let id = UUID()
-    let description: String
-    let date: Date
-    let amount: Double
-}
-
-// Extensions to Convert to Transaction
-extension Payment {
-    func toTransaction() -> Transaction {
-        return Transaction(description: method, date: date, amount: amount)
-    }
-}
-
-extension Expense {
-    func toTransaction() -> Transaction {
-        return Transaction(description: "Expense", date: date, amount: amount)
-    }
-}
-
-extension SelfPayment {
-    func toTransaction() -> Transaction {
-        return Transaction(description: "Paid to Myself", date: date, amount: amount)
-    }
-}
-
-
-// Detailed View for Each Card
-
-struct DetailedView: View {
-    let title: String
-    let data: [Transaction]
-
-    var body: some View {
-        VStack {
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
-
-            if data.isEmpty {
-                Text("No \(title.lowercased()) data available.")
-                    .foregroundColor(.gray)
-            } else {
-                List(data) { transaction in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(transaction.description)
-                                .font(.headline)
-                            Text("\(transaction.date, style: .date)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        Text("$\(String(format: "%.2f", transaction.amount))")
-                            .font(.headline)
-                            .foregroundColor(title == "Expenses" ? .red : .green)
-                    }
-                }
-            }
+    private func getTransactionColor(_ transaction: Transaction) -> Color {
+        switch transaction.description {
+        case "Paid to Myself":
+            return .blue
+        case "Expense":
+            return .red
+        default:
+            return .green
         }
-        .navigationTitle(title)
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
     }
+
+    private func exportFilteredData() {
+        saveToFile(data: filteredData, fileName: "FilteredTransactions.json")
+    }
+
+    private func saveToFile<T: Codable>(data: [T], fileName: String) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted // Optional: Makes JSON more readable
+        encoder.dateEncodingStrategy = .iso8601  // Formats dates in ISO8601
+
+        do {
+            let jsonData = try encoder.encode(data)
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+            try jsonData.write(to: tempURL)
+
+            pendingFileURL = tempURL
+            showDocumentPicker = true
+        } catch {
+            print("Failed to save file: \(error.localizedDescription)")
+        }
+    }
+}
+
+// MARK: - Document Picker
+struct DocumentPickerHomeView: UIViewControllerRepresentable {
+    let fileURL: URL?
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let controller = UIDocumentPickerViewController(forExporting: [fileURL].compactMap { $0 })
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
 }

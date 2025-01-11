@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-enum PaymentMethod: Identifiable {
+enum PaymentMethod: Identifiable , Codable{
     case predefined(String)
     case custom(String)
 
@@ -19,7 +19,7 @@ enum PaymentMethod: Identifiable {
     var id: String { rawValue }
 }
 
-struct Payment: Identifiable {
+struct Payment: Identifiable, Codable {
     var id: String?
     let amount: Double
     let method: String

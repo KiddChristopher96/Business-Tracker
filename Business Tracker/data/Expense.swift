@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct Expense: Identifiable {
+struct Expense: Identifiable, Codable {
     var id: String?
     let amount: Double
     let date: Date

@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct SelfPayment: Identifiable {
+struct SelfPayment: Identifiable, Codable {
     var id: String? // Firestore document ID
     let amount: Double
     let date: Date

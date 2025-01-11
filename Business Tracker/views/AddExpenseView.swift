@@ -33,17 +33,16 @@ struct AddExpenseView: View {
 
             // Amount Input
             HStack {
-                Spacer()
-                TextField("0", text: $amount)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.decimalPad)
-                    .foregroundColor(.primary)
                 Text("$")
                     .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.red) // Matches the expense color
+                TextField("0", text: $amount)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .keyboardType(.decimalPad)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
             }
-            .padding(.vertical, 10)
+            .padding()
             .background(Color(.systemGray6))
             .cornerRadius(20)
             .padding(.horizontal)

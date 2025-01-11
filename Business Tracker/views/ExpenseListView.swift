@@ -76,7 +76,7 @@ struct ExpenseCard: View {
             HStack {
                 Text(expense.category)
                     .font(.headline)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.red) // Updated to red for expenses
                 Spacer()
                 Text(expense.date, style: .date)
                     .font(.subheadline)
@@ -106,8 +106,8 @@ struct ExpenseCard: View {
                         .fontWeight(.semibold)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 20)
-                        .background(Color.blue.opacity(0.1))
-                        .foregroundColor(.blue)
+                        .background(Color.red.opacity(0.1)) // Updated background to red
+                        .foregroundColor(.red) // Updated text color to red
                         .cornerRadius(15)
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 2)
                 }

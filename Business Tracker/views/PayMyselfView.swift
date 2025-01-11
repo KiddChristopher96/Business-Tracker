@@ -28,15 +28,14 @@ struct PayMyselfView: View {
 
             // Amount Input
             HStack {
-                Spacer()
-                TextField("0", text: $amount)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.decimalPad)
-                    .foregroundColor(.primary)
                 Text("$")
                     .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.blue) // Matches the "Paid to Myself" color
+                TextField("0", text: $amount)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .keyboardType(.decimalPad)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
             }
             .padding()
             .background(Color(.systemGray6))

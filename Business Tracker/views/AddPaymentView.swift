@@ -32,15 +32,14 @@ struct AddPaymentView: View {
 
             // Amount Input
             HStack {
-                Spacer()
-                TextField("0", text: $amount)
-                    .font(.system(size: 48, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.decimalPad)
-                    .foregroundColor(.primary)
                 Text("$")
                     .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.green) // Matches the earnings color
+                TextField("0", text: $amount)
+                    .font(.system(size: 48, weight: .bold))
+                    .keyboardType(.decimalPad)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
             }
             .padding()
             .background(Color(.systemGray6))

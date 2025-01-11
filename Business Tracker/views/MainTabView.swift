@@ -37,9 +37,9 @@ struct MainTabView: View {
             }
             .tag(3)
 
-//            NavigationView {
-//                DashboardView()
-//            }
+            NavigationView {
+                DashboardView()
+            }
             .tabItem {
                 Label("Dashboard", systemImage: "chart.bar")
             }
