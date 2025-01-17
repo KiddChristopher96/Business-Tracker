@@ -186,6 +186,9 @@ struct AddExpenseView: View {
         }
         .padding()
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .onTapGesture {
+            dismissKeyboard() // Dismiss the keyboard on tap
+        }
         .navigationBarHidden(true)
     }
 
@@ -198,5 +201,9 @@ struct AddExpenseView: View {
         }
         newCategory = ""
         showNewCategoryField = false
+    }
+    
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }

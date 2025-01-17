@@ -5,12 +5,11 @@ import UniformTypeIdentifiers
 struct HamburgerMenu: View {
     @Binding var isOpen: Bool
     @EnvironmentObject var appData: AppData
-    @State private var showLogoutConfirmation = false // State for logout confirmation dialog
-    @State private var showExportDialog = false // State for showing export dialog
+    @State private var showLogoutConfirmation = false
+    @State private var showExportDialog = false
 
     var body: some View {
         ZStack {
-            // Dimmed background
             if isOpen {
                 Color.black.opacity(0.5)
                     .ignoresSafeArea()
@@ -21,9 +20,7 @@ struct HamburgerMenu: View {
                     }
             }
 
-            // Full-Screen Menu Content
             VStack(alignment: .leading, spacing: 0) {
-                // Header Section
                 HStack {
                     Button(action: {
                         withAnimation {
@@ -31,7 +28,7 @@ struct HamburgerMenu: View {
                         }
                     }) {
                         Image(systemName: "xmark")
-                            .font(.title)
+                            .font(.title2)
                             .foregroundColor(.primary)
                     }
                     Spacer()
@@ -39,10 +36,8 @@ struct HamburgerMenu: View {
                 .padding(.top, 50)
                 .padding(.horizontal)
 
-                // Menu Sections
                 ScrollView {
                     VStack(alignment: .leading, spacing: 30) {
-                        // Section 1: Business Management
                         SectionHeader(title: "Manage Your Business")
                         MenuItem(icon: "dollarsign.circle", title: "Payments") {
                             print("Payments tapped")
@@ -54,7 +49,6 @@ struct HamburgerMenu: View {
                             print("Analytics tapped")
                         }
 
-                        // Section 2: Settings
                         SectionHeader(title: "Settings")
                         MenuItem(icon: "gearshape", title: "General Settings") {
                             print("General Settings tapped")
@@ -63,21 +57,18 @@ struct HamburgerMenu: View {
                             print("Notifications tapped")
                         }
 
-                        // Section 3: Support
                         SectionHeader(title: "Support")
                         MenuItem(icon: "questionmark.circle", title: "Help & Support") {
                             print("Help & Support tapped")
                         }
 
-                        // Export Data
                         MenuItem(icon: "doc.text", title: "Export Data") {
                             showExportDialog.toggle()
                         }
 
-                        // Logout
                         Divider()
                         MenuItem(icon: "arrow.backward.circle", title: "Logout") {
-                            showLogoutConfirmation.toggle() // Show confirmation dialog
+                            showLogoutConfirmation.toggle()
                         }
                         .padding(.top, 20)
                     }
@@ -86,7 +77,6 @@ struct HamburgerMenu: View {
 
                 Spacer()
 
-                // Bottom Placeholder: App Info
                 VStack {
                     Divider()
                     Text("App version 1.0")
@@ -98,7 +88,7 @@ struct HamburgerMenu: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.systemBackground))
-            .offset(x: isOpen ? 0 : UIScreen.main.bounds.width) // Full-screen slide-in effect
+            .offset(x: isOpen ? 0 : UIScreen.main.bounds.width)
             .animation(.easeInOut, value: isOpen)
         }
         .confirmationDialog(
@@ -111,18 +101,16 @@ struct HamburgerMenu: View {
         }
         .sheet(isPresented: $showExportDialog) {
             ExportDataView(showExportDialog: $showExportDialog)
-                .environmentObject(appData) // Inject EnvironmentObject here
+                .environmentObject(appData)
         }
     }
 
     private func handleLogout() {
-        // Perform the logout logic
         do {
-            try Auth.auth().signOut() // Firebase logout
+            try Auth.auth().signOut()
             withAnimation {
                 isOpen = false
             }
-            // Navigate to LoginView
             (UIApplication.shared.connectedScenes.first as? UIWindowScene)?
                 .windows.first(where: \.isKeyWindow)?.rootViewController = UIHostingController(rootView: LoginView())
         } catch {
@@ -144,129 +132,159 @@ struct ExportDataView: View {
     @Binding var showExportDialog: Bool
     @EnvironmentObject var appData: AppData
     @State private var selectedOption: ExportOption = .all
-    @State private var fileContent: String? // Holds CSV content for saving
-    @State private var showSavePicker = false // To display save location picker
-    @State private var showExportConfirmation = false // For export confirmation
+    @State private var customFileName: String = ""
+    @State private var preparedData: [Transaction] = []
+    @State private var exportURL: URL?
+    @State private var showShareSheet = false
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
+        VStack(spacing: 20) {
+            HStack {
+                Button(action: { showExportDialog = false }) {
+                    Image(systemName: "xmark")
+                        .font(.title2)
+                        .foregroundColor(.primary)
+                }
+                Spacer()
                 Text("Export Data")
-                    .font(.largeTitle)
+                    .font(.headline)
                     .fontWeight(.bold)
-                    .padding()
-
-                Picker("Select Export Option", selection: $selectedOption) {
-                    ForEach(ExportOption.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
-
-                Button(action: exportData) {
-                    Text("Export \(selectedOption.rawValue)")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
                 Spacer()
             }
             .padding()
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationBarTitle("Export Data", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Close") {
-                showExportDialog = false
-            })
-            .alert("Export Successful", isPresented: $showExportConfirmation) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("Your data has been successfully exported.")
-            }
-            .fileExporter(isPresented: $showSavePicker, document: CSVDocument(csvString: fileContent ?? ""), contentType: .plainText, defaultFilename: "ExportedData.csv") { result in
-                switch result {
-                case .success:
-                    showExportConfirmation = true
-                case .failure(let error):
-                    print("Error saving file: \(error.localizedDescription)")
+
+            Text("Select Data to Export")
+                .font(.headline)
+                .padding(.top)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                ForEach(ExportOption.allCases, id: \.self) { option in
+                    VStack {
+                        Image(systemName: iconFor(option: option))
+                            .font(.largeTitle)
+                            .foregroundColor(colorFor(option: option))
+                        Text(option.rawValue)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(colorFor(option: option))
+                    }
+                    .padding()
+                    .frame(width: 140, height: 140)
+                    .background(selectedOption == option ? colorFor(option: option).opacity(0.2) : Color(.systemGray6))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                    .onTapGesture {
+                        selectedOption = option
+                        prepareExportData()
+                    }
                 }
             }
+            .padding(.horizontal)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("File Name")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.leading)
+
+                TextField("Enter File Name", text: $customFileName)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+            }
+
+            Spacer()
+
+            Button(action: exportData) {
+                Text("Export \(selectedOption.rawValue)")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(colorFor(option: selectedOption))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+                    .opacity(customFileName.isEmpty ? 0.6 : 1.0)
+            }
+            .disabled(customFileName.isEmpty)
+            .sheet(isPresented: $showShareSheet) {
+                if let exportURL = exportURL {
+                    ShareSheet(activityItems: [exportURL])
+                }
+            }
+        }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .onAppear(perform: prepareExportData)
+    }
+
+    private func prepareExportData() {
+        // Only prepare data, do not generate a file
+        switch selectedOption {
+        case .all:
+            preparedData = appData.payments.map { $0.toTransaction() } +
+                           appData.expenses.map { $0.toTransaction() } +
+                           appData.selfPayments.map { $0.toTransaction() }
+        case .payments:
+            preparedData = appData.payments.map { $0.toTransaction() }
+        case .expenses:
+            preparedData = appData.expenses.map { $0.toTransaction() }
+        case .selfPayments:
+            preparedData = appData.selfPayments.map { $0.toTransaction() }
         }
     }
 
     private func exportData() {
-        switch selectedOption {
-        case .all:
-            exportAllDataAsCSV()
-        case .payments:
-            exportPaymentsAsCSV()
-        case .expenses:
-            exportExpensesAsCSV()
-        case .selfPayments:
-            exportSelfPaymentsAsCSV()
+        guard !customFileName.isEmpty else { return }
+        generateCSV(data: preparedData)
+    }
+
+    private func generateCSV(data: [Transaction]) {
+        let csvHeader = "Description,Amount,Date\n"
+        let csvRows = data.map { "\($0.description),\($0.amount),\($0.date)" }.joined(separator: "\n")
+        let csvContent = csvHeader + csvRows
+
+        let fileName = customFileName.hasSuffix(".csv") ? customFileName : "\(customFileName).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+
+        do {
+            try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+            print("File saved at: \(tempURL)") // Debug log
+            exportURL = tempURL
+            showShareSheet = true
+        } catch {
+            print("Failed to save file: \(error.localizedDescription)")
         }
     }
 
-    private func exportAllDataAsCSV() {
-        let allData = appData.payments.map { $0.toTransaction() } +
-                      appData.expenses.map { $0.toTransaction() } +
-                      appData.selfPayments.map { $0.toTransaction() }
-        prepareCSV(data: allData)
+    private func iconFor(option: ExportOption) -> String {
+        switch option {
+        case .all: return "tray.full"
+        case .payments: return "dollarsign.circle"
+        case .expenses: return "cart"
+        case .selfPayments: return "person.crop.circle"
+        }
     }
 
-    private func exportPaymentsAsCSV() {
-        let payments = appData.payments.map { $0.toTransaction() }
-        prepareCSV(data: payments)
-    }
-
-    private func exportExpensesAsCSV() {
-        let expenses = appData.expenses.map { $0.toTransaction() }
-        prepareCSV(data: expenses)
-    }
-
-    private func exportSelfPaymentsAsCSV() {
-        let selfPayments = appData.selfPayments.map { $0.toTransaction() }
-        prepareCSV(data: selfPayments)
-    }
-
-    private func prepareCSV(data: [Transaction]) {
-        let csvHeader = "Description,Amount,Date\n"
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd/yyyy"
-
-        let csvRows = data.map { transaction -> String in
-            let formattedDate = dateFormatter.string(from: transaction.date)
-            return "\(transaction.description),\(transaction.amount),\(formattedDate)"
-        }.joined(separator: "\n")
-
-        fileContent = csvHeader + csvRows
-        showSavePicker = true
+    private func colorFor(option: ExportOption) -> Color {
+        switch option {
+        case .all: return .blue
+        case .payments: return .green
+        case .expenses: return .red
+        case .selfPayments: return .cyan
+        }
     }
 }
 
-// MARK: - CSV Document for Exporting
-struct CSVDocument: FileDocument {
-    var csvString: String
+// MARK: - Share Sheet
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
 
-    static var readableContentTypes: [UTType] { [.plainText] }
-
-    init(csvString: String) {
-        self.csvString = csvString
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
     }
 
-    init(configuration: ReadConfiguration) throws {
-        self.csvString = ""
-    }
-
-    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = csvString.data(using: .utf8)!
-        return FileWrapper(regularFileWithContents: data)
-    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Helper Components

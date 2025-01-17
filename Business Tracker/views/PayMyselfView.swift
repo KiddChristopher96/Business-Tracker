@@ -90,6 +90,14 @@ struct PayMyselfView: View {
         }
         .padding()
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .onTapGesture {
+            dismissKeyboard() // Dismiss the keyboard on tap
+        }
         .navigationBarHidden(true)
+    }
+    
+    // Helper to dismiss the keyboard
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }

@@ -146,7 +146,7 @@ struct AddPaymentView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(amount.isEmpty || selectedMethod.isEmpty ? Color.gray : Color.blue)
+                    .background(amount.isEmpty || selectedMethod.isEmpty ? Color.gray : Color.green)
                     .cornerRadius(20)
                     .padding(.horizontal)
             }
@@ -154,6 +154,9 @@ struct AddPaymentView: View {
         }
         .padding()
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .onTapGesture {
+            dismissKeyboard() // Dismiss the keyboard on tap
+        }
         .navigationBarHidden(true)
     }
 
@@ -174,5 +177,10 @@ struct AddPaymentView: View {
             appData.addPayment(amount: amountValue, method: selectedMethod, date: date, notes: notes)
             selectedTab = 0 // Navigate back to Home tab
         }
+    }
+
+    // Helper to dismiss the keyboard
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
