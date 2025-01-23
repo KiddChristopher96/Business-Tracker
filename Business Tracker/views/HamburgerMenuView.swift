@@ -7,6 +7,7 @@ struct HamburgerMenu: View {
     @EnvironmentObject var appData: AppData
     @State private var showLogoutConfirmation = false
     @State private var showExportDialog = false
+    @State private var navigateToGeneralSettings = false // New State for navigation
 
     var body: some View {
         ZStack {
@@ -39,20 +40,22 @@ struct HamburgerMenu: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 30) {
                         SectionHeader(title: "Manage Your Business")
-                        MenuItem(icon: "dollarsign.circle", title: "Payments") {
-                            print("Payments tapped")
-                        }
-                        MenuItem(icon: "cart", title: "Expenses") {
-                            print("Expenses tapped")
-                        }
-                        MenuItem(icon: "chart.bar", title: "Analytics") {
-                            print("Analytics tapped")
-                        }
-
                         SectionHeader(title: "Settings")
+                        
+                        // Navigate to General Settings
                         MenuItem(icon: "gearshape", title: "General Settings") {
-                            print("General Settings tapped")
+                            navigateToGeneralSettings = true
                         }
+                        .background(
+                            NavigationLink(
+                                destination: GeneralSettingsView(), // New Settings Screen
+                                isActive: $navigateToGeneralSettings
+                            ) {
+                                EmptyView()
+                            }
+                            .hidden()
+                        )
+
                         MenuItem(icon: "bell", title: "Notifications") {
                             print("Notifications tapped")
                         }

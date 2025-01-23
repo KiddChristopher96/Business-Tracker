@@ -58,22 +58,9 @@
 		DE7761FE2D2CBBCB00FE2FD0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DE7F19D12D30E25A00A4DC9F /* Exceptions for "Business Tracker" folder in "Business Tracker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Business-Tracker-Info.plist",
-			);
-			target = DE7761642D2C4BEB00FE2FD0 /* Business Tracker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DE7761672D2C4BEB00FE2FD0 /* Business Tracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DE7F19D12D30E25A00A4DC9F /* Exceptions for "Business Tracker" folder in "Business Tracker" target */,
-			);
 			path = "Business Tracker";
 			sourceTree = "<group>";
 		};
