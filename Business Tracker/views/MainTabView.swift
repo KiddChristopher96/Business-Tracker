@@ -41,7 +41,7 @@ struct MainTabView: View {
                 DashboardView()
             }
             .tabItem {
-                Label("Dashboard", systemImage: "chart.bar")
+                Label("CRM", systemImage: "chart.bar")
             }
             .tag(4)
         }
